@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
+import { IncomingMessage } from 'http';
 
 const app = express();
 const port = 3000;
@@ -45,11 +46,52 @@ app.get('/guis', (req, res) => {
   const filePath = path.join(process.cwd(), 'files', 'gui.yml');
   
   if (fs.existsSync(filePath)) {
-    //res.send(filePath)
     res.sendFile(filePath);
   } else {
     res.status(404).json({ error: 'Arquivo gui.yml não encontrado' });
   }
+});
+
+// Rota para receber o arquivo e salvar no diretório 'files'
+app.post("/create/file", (req, res) => {
+  const fileData = {}; // Onde o arquivo será armazenado
+  let filePath = '';
+
+  req.on('data', chunk => {
+    // O chunk de dados recebido será armazenado no fileData
+    fileData.buffer = (fileData.buffer || '') + chunk;
+  });
+
+  req.on('end', () => {
+    const boundary = req.headers['content-type']?.split(';')[1]?.split('=')[1] || '';
+
+    // Divida os dados do form usando o boundary para encontrar o arquivo
+    const fileContent = fileData.buffer.split(`--${boundary}`)[1].split(`--`)[0].trim();
+
+    // Filtra o arquivo pelo nome (e.g., "file")
+    const match = fileContent.match(/Content-Disposition: form-data; name="file"; filename="([^"]+)"/);
+    if (match && match[1]) {
+      const filename = match[1];
+      filePath = path.join(process.cwd(), 'files', 'gui.yml');
+      
+      // Salva o arquivo no diretório /files/gui.yml
+      fs.writeFile(filePath, fileContent.split('\r\n\r\n')[1], 'binary', (err) => {
+        if (err) {
+          console.error('Erro ao salvar o arquivo:', err);
+          return res.status(500).send('Erro ao salvar o arquivo');
+        }
+
+        res.status(200).send('Arquivo enviado e salvo com sucesso');
+      });
+    } else {
+      return res.status(400).send('Nenhum arquivo encontrado');
+    }
+  });
+
+  req.on('error', (err) => {
+    console.error('Erro durante o upload:', err);
+    res.status(500).send('Erro durante o upload');
+  });
 });
 
 // Inicia o servidor

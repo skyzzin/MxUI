@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ActionPaint } from './enum/ActionPaintEnum'
 import Aside from './components/Aside/Aside'
 import Enviroment from './components/Enviroment/Enviroment'
@@ -10,12 +10,16 @@ import { CurrentEnviroment } from './components/Enviroment/dtos/CurrentEnviromen
 
 
 function App() {
+  const [fileYamlIsPresent,setFileYamlIsPresent] = useState<boolean>(false)
+
   const [isDoubleChest,setIsDoubleChest] = useState<boolean>(false)
   const [currentInventoryType,setCurrentInventoryType] = useState<InventoryType>()
   const [currentActionPaint,setCurrentActionPaint] = useState<ActionPaint>()
   const [currentPaintBlock,setCurrentPaintBlock]  = useState<Block>()
 
   const [currentEnviroment,setCurrentEnviroment] = useState<CurrentEnviroment>()
+  const [enviroments,setEnviroments] = useState<CurrentEnviroment[]>()
+
   
   const enviroment:EnviromentDto = {
     
@@ -24,9 +28,10 @@ function App() {
     currentInventoryType,
     isDoubleChest,
     currentEnviroment,
-    
+    enviroments,
     setCurrentPaintBlock,
-    setCurrentEnviroment
+    setCurrentEnviroment,
+    setEnviroments
     
   }
   const aside:AsideDto = {
@@ -34,19 +39,38 @@ function App() {
     setCurrentActionPaint,
     setCurrentPaintBlock,
     setIsDoubleChest,
-  
+    setFileYamlIsPresent,
 
     currentInventoryType,
-    currentEnviroment
+    currentEnviroment,
+    fileYamlIsPresent,
+    enviroments
+    
     
 
   }
+
+  useEffect(()=>{
+     (async () => {
+          try {
+            const res = await fetch('http://localhost:3000/guis');
+            if(res.status != 404){
+             setFileYamlIsPresent(true)
+            }
+           
+          } catch (error) {
+            alert('Erro ao buscar o arquivo gui.yml');
+          }
+        })();
+  },[])
 
 
   return (
     <div className='bg-[#141414] w-[100vw] h-[100vh] flex'>
       <Aside aside={aside} />
-      <Enviroment enviroment={enviroment} />
+      {fileYamlIsPresent && (
+        <Enviroment enviroment={enviroment} />
+      )}
     </div>
   )
 }

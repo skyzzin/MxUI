@@ -1,134 +1,185 @@
 import { useState, useEffect } from "react";
 import { InventoryType } from "../../../enum/InventoryType";
 import { EnviromentDto } from "../dtos/Enviroment";
-import { ChevronDown } from "lucide-react"; // Importando o ícone ChevronDown
+import { ChevronDown } from "lucide-react";
+import { CurrentEnviroment, EnviromentArea } from "../dtos/CurrentEnviroment";
+import CellModal from "./Grid/CellModal";
 
 const inventoryGrids: Record<InventoryType, { rows: number; columns: number }> = {
-    [InventoryType.CHEST]: { rows: 3, columns: 9 },
-    [InventoryType.ENDER_CHEST]: { rows: 3, columns: 9 },
-    [InventoryType.SHULKER_BOX]: { rows: 3, columns: 9 },
-    [InventoryType.BARREL]: { rows: 3, columns: 9 },
-    [InventoryType.FURNACE]: { rows: 1, columns: 3 },
-    [InventoryType.BLAST_FURNACE]: { rows: 1, columns: 3 },
-    [InventoryType.SMOKER]: { rows: 1, columns: 3 },
-    [InventoryType.CRAFTING_TABLE]: { rows: 3, columns: 3 },
-    [InventoryType.ANVIL]: { rows: 1, columns: 1 },
-    [InventoryType.ENCHANTMENT_TABLE]: { rows: 1, columns: 2 },
-    [InventoryType.HOPPER]: { rows: 1, columns: 5 },
+  [InventoryType.CHEST]: { rows: 3, columns: 9 },
+  [InventoryType.ENDER_CHEST]: { rows: 3, columns: 9 },
+  [InventoryType.SHULKER_BOX]: { rows: 3, columns: 9 },
+  [InventoryType.BARREL]: { rows: 3, columns: 9 },
+  [InventoryType.FURNACE]: { rows: 1, columns: 3 },
+  [InventoryType.BLAST_FURNACE]: { rows: 1, columns: 3 },
+  [InventoryType.SMOKER]: { rows: 1, columns: 3 },
+  [InventoryType.CRAFTING_TABLE]: { rows: 3, columns: 3 },
+  [InventoryType.ANVIL]: { rows: 1, columns: 1 },
+  [InventoryType.ENCHANTMENT_TABLE]: { rows: 1, columns: 2 },
+  [InventoryType.HOPPER]: { rows: 1, columns: 5 },
 };
 
 export default function Grid({ enviroment }: { enviroment: EnviromentDto }) {
-    const [type, setType] = useState<InventoryType | undefined>(enviroment.currentInventoryType);
-    const [grid, setGrid] = useState<string[][]>([]);
+  const [type, setType] = useState<InventoryType | undefined>(enviroment.currentInventoryType);
+  const [grid, setGrid] = useState<string[][]>([]);
+  const [selectedCell, setSelectedCell] = useState<{ i: number; j: number } | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cellDescription, setCellDescription] = useState("");
+  const [cellAction, setCellAction] = useState("");
 
-    // Atualiza o grid sempre que o tipo de inventário mudar
-    useEffect(() => {
-        if (!type) return;
+  useEffect(() => {
+    if (!type) return;
 
-        let rows = 3; // Valor padrão
-        let columns = 9; // Valor padrão
+    let rows = 3;
+    let columns = 9;
 
-        if (enviroment.isDoubleChest) {
-            rows = 6; // Se for um baú duplo, muda para 6 linhas
-            columns = 9; // O número de colunas para um baú duplo continua sendo 9
-        } else {
-            const { rows: defaultRows, columns: defaultColumns } = inventoryGrids[type];
-            rows = defaultRows;
-            columns = defaultColumns;
-        }
+    if (enviroment.isDoubleChest) {
+      rows = 6;
+      columns = 9;
+    } else {
+      const { rows: defaultRows, columns: defaultColumns } = inventoryGrids[type];
+      rows = defaultRows;
+      columns = defaultColumns;
+    }
 
-        // Garantir que o grid tenha sempre apenas strings
-        setGrid(Array.from({ length: rows }, () => Array(columns).fill("") as string[]));
-    }, [type, enviroment.isDoubleChest]); // Adicionando enviroment.isDoubleChest na dependência
+    setGrid(Array.from({ length: rows }, () => Array(columns).fill("")));
+  }, [type, enviroment.isDoubleChest]);
 
-    useEffect(() => {
-        setType(enviroment.currentInventoryType);
-    }, [enviroment.currentInventoryType]);
+  useEffect(() => {
+    setType(enviroment.currentInventoryType);
+  }, [enviroment.currentInventoryType]);
 
-    const handleCellClick = (i: number, j: number) => {
-        if (!enviroment || !enviroment.currentPaintBlock) return;
+  const updateCellEnviroment = (i: number, j: number, newData: Partial<EnviromentArea>) => {
+    const clickedLine = i + 1;
+    const clickedColumn = j + 1;
 
-        const newGrid = grid.map((row, rowIndex) =>
-            row.map((cell, colIndex) => 
-                rowIndex === i && colIndex === j ? enviroment.currentPaintBlock!.url : cell
-            )
-        );
-        setGrid(newGrid);
-    };
+    enviroment.setCurrentEnviroment((prev) => {
+      if (!prev) return prev;
+      const updatedAreas = prev.enviroment.map((area) =>
+        area.line === clickedLine && area.column === clickedColumn ? { ...area, ...newData } : area
+      );
+      return { ...prev, enviroment: updatedAreas };
+    });
 
-    const [menuVisible, setMenuVisible] = useState<{ [key: string]: boolean }>({});
-    const [clickedCell, setClickedCell] = useState<{ i: number, j: number } | null>(null); // Controle de célula clicada
+    enviroment.setEnviroments((prev) => {
+      if (!prev) return prev;
+      const key = Object.keys(prev)[0];
+      return { ...prev, [key]: enviroment.currentEnviroment };
+    });
+  };
 
-    const toggleMenu = (key: string) => {
-        setMenuVisible(prevState => ({
-            ...prevState,
-            [key]: !prevState[key]
-        }));
-    };
-
-    return (
-        <div className="p-4">
-            <div
-                className="grid gap-2 border border-gray-400 p-2"
-                style={{
-                    gridTemplateColumns: `repeat(${grid[0]?.length || 9}, 64px)`,
-                    gridTemplateRows: `repeat(${grid.length || 3}, 64px)`,
-                }}
-            >
-                {grid.map((row, i) =>
-                    row.map((cell, j) => {
-                        const cellKey = `${i}-${j}`;
-                        const isClicked = clickedCell?.i === i && clickedCell?.j === j; // Verifica se a célula foi clicada
-                        return (
-                            <div
-                                key={cellKey}
-                                className="border border-gray-300 p-2 flex items-center justify-center cursor-pointer relative"
-                                style={{ width: "64px", height: "64px" }}
-                                onClick={() => {
-                                    handleCellClick(i, j);
-                                    setClickedCell({ i, j }); // Atualiza a célula clicada
-                                }}
-                            >
-                                {/* ChevronDown no canto superior direito, só aparece quando a célula é clicada */}
-                                {isClicked && (
-                                    <div
-                                        className="absolute top-0 right-0 p-1 cursor-pointer"
-                                        onClick={(e) => {
-                                            e.stopPropagation(); // Impede que o clique no ChevronDown feche o menu
-                                            toggleMenu(cellKey);
-                                        }}
-                                    >
-                                        <ChevronDown color="#ffffff" />
-                                    </div>
-                                )}
-
-                                {/* Mostrar a imagem ou coordenadas */}
-                                {cell ? (
-                                    <img
-                                        src={cell}
-                                        alt={`cell-${i}-${j}`}
-                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                    />
-                                ) : (
-                                    !isClicked && `(${i + 1}, ${j + 1})`  // Exibe as coordenadas apenas se a célula não foi clicada
-                                )}
-
-                                {/* Menu de opções */}
-                                {menuVisible[cellKey] && (
-                                    <div className="absolute z-10 top-8 right-0 bg-white border shadow-lg p-2">
-                                        <button className="block w-full text-sm text-left p-1 hover:bg-gray-200">
-                                            Criar Comando
-                                        </button>
-                                        <button className="block w-full text-sm text-left p-1 hover:bg-gray-200">
-                                            Criar Descrição
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-        </div>
+  const handleCellClick = (i: number, j: number) => {
+    if (!enviroment || !enviroment.currentPaintBlock) return;
+  
+    const newGrid = grid.map((row, rowIndex) =>
+      row.map((cell, colIndex) =>
+        rowIndex === i && colIndex === j ? enviroment.currentPaintBlock!.url : cell
+      )
     );
+    setGrid(newGrid);
+  
+    const clickedLine = i + 1;
+    const clickedColumn = j + 1;
+  
+    const rows = grid.length;
+    const columns = grid[0]?.length || 0;
+    const updatedAreas: EnviromentArea[] = [];
+  
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        const line = row + 1;
+        const column = col + 1;
+  
+        let cellEntry =
+          enviroment.currentEnviroment?.enviroment.find(
+            (area) => area.line === line && area.column === column
+          ) || { line, column, item: "", action: "", description: "" };
+  
+        if (line === clickedLine && column === clickedColumn) {
+          cellEntry = {
+            ...cellEntry,
+            item: enviroment.currentPaintBlock!.name,
+          };
+        }
+  
+        updatedAreas.push(cellEntry);
+      }
+    }
+  
+    const newCurrentEnviroment:CurrentEnviroment  = {
+      ...enviroment.currentEnviroment,
+      enviroment: updatedAreas,
+
+    };
+  
+    enviroment.setCurrentEnviroment(newCurrentEnviroment);
+    enviroment.setEnviroments((prev) => {
+      if (!prev) return prev;
+      const key = Object.keys(prev)[0];
+      return { ...prev, [key]: newCurrentEnviroment };
+    });
+  };
+  
+  const handleModalSave = () => {
+    if (!selectedCell) return;
+    const { i, j } = selectedCell;
+    updateCellEnviroment(i, j, { description: cellDescription, action: cellAction });
+    setModalVisible(false);
+    setCellDescription("");
+    setCellAction("");
+  };
+
+  return (
+    <div className="p-4">
+      <div
+        className="grid gap-2 border border-gray-400 p-2"
+        style={{
+          gridTemplateColumns: `repeat(${grid[0]?.length || 9}, 64px)`,
+          gridTemplateRows: `repeat(${grid.length || 3}, 64px)`,
+        }}
+      >
+        {grid.map((row, i) =>
+          row.map((cell, j) => {
+            const cellKey = `${i}-${j}`;
+            const isSelected = selectedCell && selectedCell.i === i && selectedCell.j === j;
+            return (
+              <div
+                key={cellKey}
+                className="border border-gray-300 p-2 flex items-center justify-center cursor-pointer relative"
+                style={{ width: "64px", height: "64px" }}
+                onClick={() => handleCellClick(i, j)}
+                onMouseEnter={() => setSelectedCell({ i, j })}
+              >
+                
+                {cell ? (
+                  <img
+                    src={cell}
+                    alt={`cell-${i}-${j}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  !isSelected && `(${i + 1}, ${j + 1})`
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <CellModal
+        visible={modalVisible}
+        description={cellDescription}
+        action={cellAction}
+        onChangeDescription={setCellDescription}
+        onChangeAction={setCellAction}
+        onCancel={() => {
+          setModalVisible(false);
+          setCellDescription("");
+          setCellAction("");
+        }}
+        onSave={handleModalSave}
+      />
+
+    </div>
+  );
 }

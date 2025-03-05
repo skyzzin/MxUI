@@ -1,9 +1,9 @@
 export interface CurrentEnviroment {
-    inventoryType:string
+    inventoryType?:string
     enviroment:EnviromentArea[]
 }
 
-interface EnviromentArea {
+export interface EnviromentArea {
     line: number,
     column: number,
     item: string,

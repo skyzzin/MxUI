@@ -9,7 +9,10 @@ export interface EnviromentDto {
     currentActionPaint:ActionPaint | undefined,
     isDoubleChest:boolean,
     currentEnviroment:CurrentEnviroment | undefined,
+    enviroments:CurrentEnviroment[] | undefined,
 
-    setCurrentPaintBlock:React.Dispatch<React.SetStateAction<Block | undefined>>
-    setCurrentEnviroment:React.Dispatch<React.SetStateAction<CurrentEnviroment | undefined>>
+    setCurrentPaintBlock:React.Dispatch<React.SetStateAction<Block | undefined>>,
+    setCurrentEnviroment:React.Dispatch<React.SetStateAction<CurrentEnviroment | undefined>>,
+    setEnviroments:React.Dispatch<React.SetStateAction<CurrentEnviroment[] | undefined>>,
+
 }

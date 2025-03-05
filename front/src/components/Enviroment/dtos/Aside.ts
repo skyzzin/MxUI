@@ -10,9 +10,12 @@ export interface AsideDto {
     setCurrentActionPaint: React.Dispatch<React.SetStateAction<ActionPaint | undefined>>;
     setCurrentPaintBlock:React.Dispatch<React.SetStateAction<Block | undefined>>;
     setIsDoubleChest:React.Dispatch<React.SetStateAction<boolean>>;
+    setFileYamlIsPresent:React.Dispatch<React.SetStateAction<boolean>>;
 
     currentInventoryType:InventoryType | undefined
     currentEnviroment:CurrentEnviroment | undefined
+    fileYamlIsPresent:boolean | undefined
+    enviroments:CurrentEnviroment[] | undefined
 
     
   }

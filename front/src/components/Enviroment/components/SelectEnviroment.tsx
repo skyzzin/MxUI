@@ -11,14 +11,16 @@ export default function SelectEnviroment({enviroment}:{enviroment:EnviromentDto}
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false); // Estado para controlar o modal
 
-  const [environments, setEnvironments] = useState<CurrentEnviroment[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch('http://localhost:3000/guis');
-        const data = yaml.load(await res.text()) as CurrentEnviroment[]; // Tipando como array de CurrentEnviroment
-        setEnvironments(data);
+        if(res.status != 404){
+          const data = yaml.load(await res.text()) as CurrentEnviroment[]; // Tipando como array de CurrentEnviroment
+          enviroment.setEnviroments(data);
+        }
+       
       } catch (error) {
         console.error('Erro ao buscar o arquivo gui.yml:', error);
       }
@@ -74,10 +76,10 @@ export default function SelectEnviroment({enviroment}:{enviroment:EnviromentDto}
 
           {/* Lista de opções */}
           <div className="max-h-40 overflow-auto">
-            {environments.length === 0 ? (
+            {enviroment.enviroments?.length === 0 ? (
               <div className="text-center text-gray-400">Nenhum ambiente encontrado</div>
             ) : (
-              environments.map((env, index) => (
+              enviroment?.enviroments?.map((env, index) => (
                 <div
                   key={index}
                   className="flex justify-between p-2 hover:bg-gray-600 cursor-pointer"
@@ -102,9 +104,8 @@ export default function SelectEnviroment({enviroment}:{enviroment:EnviromentDto}
       {showModal && (
         <ModalCreateEnvironment
           setShowModal={setShowModal}
-          setEnvironments={setEnvironments}
+          enviroment={enviroment}
           setSelectedEnvironment={setSelectedEnvironment}
-          environments={environments}
         />
       )}
     </div>

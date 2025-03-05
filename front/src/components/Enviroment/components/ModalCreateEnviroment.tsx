@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
+import { EnviromentDto } from '../dtos/Enviroment';
 import { CurrentEnviroment } from '../dtos/CurrentEnviroment';
 
 interface ModalProps {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setEnvironments: React.Dispatch<React.SetStateAction<CurrentEnviroment[]>>;
-  environments: CurrentEnviroment[];
+  enviroment:EnviromentDto
   setSelectedEnvironment: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ModalCreateEnvironment: React.FC<ModalProps> = ({
   setShowModal,
-  setEnvironments,
+  enviroment,
   setSelectedEnvironment,
-  environments,
+
 }) => {
   const [newEnvironmentName, setNewEnvironmentName] = useState<string>('');
 
   // Função para verificar se o ambiente já existe
   const isEnvironmentExist = (name: string) => {
-    return environments.some((envObj) => envObj.inventoryType === name);
+    return enviroment.enviroments?.some((envObj) => envObj.inventoryType === name);
   };
 
   // Função para criar o novo ambiente
@@ -36,12 +36,12 @@ const ModalCreateEnvironment: React.FC<ModalProps> = ({
       return;
     }
 
-    // Adiciona o novo ambiente
-    setEnvironments((prevEnvironments) => [
-      ...prevEnvironments,
-      { inventoryType: trimmedName, enviroment: [] },
-    ]);
-
+    enviroment.setEnviroments((prevEnvironments: CurrentEnviroment[] | undefined) => {
+      return [
+        ...(prevEnvironments ?? []), 
+      ];
+    });
+    
     // Define o ambiente recém-criado como o selecionado
     setSelectedEnvironment(trimmedName);
     setNewEnvironmentName(''); // Limpa o campo de entrada
