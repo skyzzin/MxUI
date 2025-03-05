@@ -14,6 +14,9 @@ app.use(cors({
 // Configura o diretório 'block' como público para servir as imagens
 app.use('/block', express.static(path.join(process.cwd(), 'block')));
 
+// Configura o diretório 'files' como público para servir os arquivos em /guis
+app.use('/files', express.static(path.join(process.cwd(), 'files')));
+
 // Rota para retornar o JSON com as imagens em formato {name, url}
 app.get('/json', (req, res) => {
   const blockDir = path.join(process.cwd(), 'block');
@@ -36,6 +39,17 @@ app.get('/json', (req, res) => {
     // Retorna o JSON com name e url
     res.json(imageObjects);
   });
+});
+
+app.get('/guis', (req, res) => {
+  const filePath = path.join(process.cwd(), 'files', 'gui.yml');
+  
+  if (fs.existsSync(filePath)) {
+    //res.send(filePath)
+    res.sendFile(filePath);
+  } else {
+    res.status(404).json({ error: 'Arquivo gui.yml não encontrado' });
+  }
 });
 
 // Inicia o servidor

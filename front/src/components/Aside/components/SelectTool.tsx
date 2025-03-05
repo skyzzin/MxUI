@@ -18,7 +18,7 @@ export default function SelectTool(aside:{
   return (
     <div className="flex gap-8 justify-center p-2">
       {/* Botão de Ferramenta de Seleção */}
-      <div className="relative group">
+    {/*   <div className="relative group">
         <button
           onClick={() => select(ActionPaint.SELECT)}
           className={`p-3 rounded-lg shadow-md transition ${
@@ -30,7 +30,7 @@ export default function SelectTool(aside:{
         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 text-sm bg-black text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
           Ferramenta de Seleção
         </div>
-      </div>
+      </div> */}
 
       {/* Botão de Apagador */}
       <div className="relative group">

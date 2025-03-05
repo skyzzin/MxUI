@@ -25,9 +25,21 @@ export default function Grid({ enviroment }: { enviroment: EnviromentDto }) {
     useEffect(() => {
         if (!type) return;
 
-        const { rows, columns } = inventoryGrids[type];
-        setGrid(Array.from({ length: rows }, () => Array(columns).fill("")));
-    }, [type]);
+        let rows = 3; // Valor padrão
+        let columns = 9; // Valor padrão
+
+        if (enviroment.isDoubleChest) {
+            rows = 6; // Se for um baú duplo, muda para 6 linhas
+            columns = 9; // O número de colunas para um baú duplo continua sendo 9
+        } else {
+            const { rows: defaultRows, columns: defaultColumns } = inventoryGrids[type];
+            rows = defaultRows;
+            columns = defaultColumns;
+        }
+
+        // Garantir que o grid tenha sempre apenas strings
+        setGrid(Array.from({ length: rows }, () => Array(columns).fill("") as string[]));
+    }, [type, enviroment.isDoubleChest]); // Adicionando enviroment.isDoubleChest na dependência
 
     useEffect(() => {
         setType(enviroment.currentInventoryType);
@@ -38,7 +50,7 @@ export default function Grid({ enviroment }: { enviroment: EnviromentDto }) {
 
         const newGrid = grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => 
-                rowIndex === i && colIndex === j ? enviroment.currentPaintBlock.url : cell
+                rowIndex === i && colIndex === j ? enviroment.currentPaintBlock!.url : cell
             )
         );
         setGrid(newGrid);
@@ -59,8 +71,8 @@ export default function Grid({ enviroment }: { enviroment: EnviromentDto }) {
             <div
                 className="grid gap-2 border border-gray-400 p-2"
                 style={{
-                    gridTemplateColumns: `repeat(${inventoryGrids[type].columns}, 64px)`,
-                    gridTemplateRows: `repeat(${inventoryGrids[type].rows}, 64px)`,
+                    gridTemplateColumns: `repeat(${grid[0]?.length || 9}, 64px)`,
+                    gridTemplateRows: `repeat(${grid.length || 3}, 64px)`,
                 }}
             >
                 {grid.map((row, i) =>

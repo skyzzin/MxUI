@@ -6,27 +6,39 @@ import { EnviromentDto } from './components/Enviroment/dtos/Enviroment'
 import { InventoryType } from './enum/InventoryType'
 import { Block } from './enum/Block'
 import { AsideDto } from './components/Enviroment/dtos/Aside'
+import { CurrentEnviroment } from './components/Enviroment/dtos/CurrentEnviroment'
 
 
 function App() {
+  const [isDoubleChest,setIsDoubleChest] = useState<boolean>(false)
   const [currentInventoryType,setCurrentInventoryType] = useState<InventoryType>()
-
   const [currentActionPaint,setCurrentActionPaint] = useState<ActionPaint>()
   const [currentPaintBlock,setCurrentPaintBlock]  = useState<Block>()
+
+  const [currentEnviroment,setCurrentEnviroment] = useState<CurrentEnviroment>()
   
   const enviroment:EnviromentDto = {
     
     currentPaintBlock,
     currentActionPaint,
     currentInventoryType,
+    isDoubleChest,
+    currentEnviroment,
     
-    setCurrentPaintBlock
+    setCurrentPaintBlock,
+    setCurrentEnviroment
     
   }
   const aside:AsideDto = {
     setCurrentInventoryType,
     setCurrentActionPaint,
-    setCurrentPaintBlock
+    setCurrentPaintBlock,
+    setIsDoubleChest,
+  
+
+    currentInventoryType,
+    currentEnviroment
+    
 
   }
 
